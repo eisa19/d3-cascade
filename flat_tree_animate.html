@@ -42,10 +42,10 @@
 
     // declares a tree layout and assigns the size
 
-    var treemap = d3.tree().size([height, width])
-    .separation(function separation(a, b) {
+    var treemap = d3.tree().size([height, width]).separation(function separation(a, b) {
       return a.parent == b.parent ? 20 : 20;
-    }); //returns the desired separation between nodes
+    });
+     //returns the desired separation between nodes
 
 
     var stratify = d3.stratify().parentId(function (d) {
@@ -59,6 +59,8 @@
       root.x0 = height / 2;
       root.y0 = 0;
 
+      // root.children.forEach(collapse);
+
       update(root);
 
       function collapse(d) {
@@ -70,10 +72,30 @@
       }
 
       function update(source) {
+
+        //calculate the number of children in each level and adjust the height accordingly
+
+        var levelWidth = [1];
+        var childCount = function(level, n) {
+
+            if (n.children && n.children.length > 0) {
+                if (levelWidth.length <= level + 1) levelWidth.push(0);
+
+                levelWidth[level + 1] += n.children.length;
+                n.children.forEach(function(d) {
+                    childCount(level + 1, d);
+                });
+            }
+        };
+        childCount(0, root);
+        var newHeight = d3.max(levelWidth) * 25; // 25 pixels per line
+        console.log('newHeight' , newHeight)
+        treemap = treemap.size([newHeight*3.2, width]);
         var treeData = treemap(root);
 
         var nodes = treeData.descendants(),
           links = treeData.descendants().slice(1);
+          console.log('nodes' , nodes , links)
 
         nodes.forEach(function (d) {
           d.y = d.depth * 500; //increased the depth between two nodes to avoid overlapping
@@ -88,7 +110,7 @@
           .append('g')
           .attr('class', 'node')
           .attr('transform', function (d) {
-            return 'translate(' + source.y0 + ',' + source.x0 + ')';
+            return 'translate(' + source.y0 + ',' + (source.x0 ) + ')';
           })
           .on('click', click);
 
@@ -104,20 +126,15 @@
 
         nodeEnter
           .append('text')
-          // .attr('dy', 3)
           .attr('x', function (d) {
             return d.children || d._children ? -8 : 8;
           })
-          
-          .text(function (d) {
+         .text(function (d) {
             return d.id.substring(d.id.lastIndexOf('.') + 1);
           }) 
           .style('text-anchor', function (d) {
             return d.children ? 'end' : 'start';
-          })
-              // .attr("x", tx)
-              // .attr("y", ty)
-            .attr("dy", 1)
+          }).attr("dy", 1)
           .call(wrap, 150);
 
         var nodeUpdate = nodeEnter.merge(node);
@@ -125,7 +142,7 @@
           .transition()
           .duration(duration)
           .attr('transform', function (d) {
-            return 'translate(' + d.y + ',' + d.x + ')';
+            return 'translate(' + d.y + ',' + (d.x) + ')';
           });
 
         nodeUpdate
