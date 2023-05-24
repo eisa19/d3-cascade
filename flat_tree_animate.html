@@ -3,8 +3,8 @@
 <style>
   .node circle {
     fill: #fff;
-    stroke: gray;
-    stroke-width: 2px;
+    stroke: black;
+    stroke-width: 1px;
   }
 
   .node text {
@@ -24,9 +24,9 @@
   <script src="https://d3js.org/d3.v4.min.js"></script>
   <script>
     // Set the dimensions and margins of the diagram
-    var margin = { top: 20, right: 90, bottom: 30, left: 90 },
-      width = 3500,
-      height = 2500;
+    var margin = { top: 20, right: 90, bottom: 50, left: 90 },
+      width = 4500,
+      height = 3500 - margin.bottom;
 
     var svg = d3
       .select('body')
@@ -42,7 +42,11 @@
 
     // declares a tree layout and assigns the size
 
-    var treemap = d3.tree().size([height, width]);
+    var treemap = d3.tree().size([height, width])
+    .separation(function separation(a, b) {
+      return a.parent == b.parent ? 20 : 20;
+    }); //returns the desired separation between nodes
+
 
     var stratify = d3.stratify().parentId(function (d) {
       return d.id.substring(0, d.id.lastIndexOf('.'));
@@ -72,7 +76,7 @@
           links = treeData.descendants().slice(1);
 
         nodes.forEach(function (d) {
-          d.y = d.depth * 180;
+          d.y = d.depth * 500; //increased the depth between two nodes to avoid overlapping
         });
 
         var node = svg.selectAll('g.node').data(nodes, function (d) {
@@ -93,8 +97,10 @@
           .attr('class', 'node')
           .attr('r', 1e-6)
           .style('fill', function (d) {
-            return d._children ? 'grey' : '#fff';
-          });
+            return d.data.color; //fill the node with color stated in the csv file
+          })
+          .style('stroke-width', function (d) { 
+            return d._children ? '2px' : '1px';}); //increase the stroke width of node if it is colapsed
 
         nodeEnter
           .append('text')
@@ -119,10 +125,12 @@
 
         nodeUpdate
           .select('circle.node')
-          .attr('r', 2.5)
+          .attr('r', 5)
           .style('fill', function (d) {
-            return d._children ? 'gray' : '#fff';
+            return d.data.color; //fill the node with color stated in the csv file
           })
+          .style('stroke-width', function (d) { 
+            return d._children ? '2px' : '1px';}) //increase the stroke width of node if it is colapsed
           .attr('cursor', 'pointer');
 
         var nodeExit = node
