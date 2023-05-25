@@ -28,6 +28,11 @@
       width = 4500,
       height = 3500 - margin.bottom;
 
+      var lineHeight = 15 // change this number to change spacing of text
+      var nodesVerticalDistance = 3.2; //change this number to change vertical distance between nodes
+      var nodeHorizontalSpacing = 500; ////change this number to change horizontal distance between nodes
+
+
     var svg = d3
       .select('body')
       .append('svg')
@@ -52,7 +57,7 @@
       return d.id.substring(0, d.id.lastIndexOf('.'));
     });
 
-    d3.csv('flare.csv', function (error, data) {
+    d3.csv('armenui.csv', function (error, data) {
       var root = stratify(data).sort(function (a, b) {
         return a.height - b.height || a.id.localeCompare(b.id);
       });
@@ -94,14 +99,14 @@
         childCount(0, root);
         var newHeight = d3.max(levelWidth) * 25; // 25 pixels per line
 
-        treemap = treemap.size([newHeight*3.2, width]);
+        treemap = treemap.size([newHeight*nodesVerticalDistance, width]);
         var treeData = treemap(root);
 
         var nodes = treeData.descendants(),
           links = treeData.descendants().slice(1);
 
         nodes.forEach(function (d) {
-          d.y = d.depth * 500; //increased the depth between two nodes to avoid overlapping
+          d.y = d.depth * nodeHorizontalSpacing; //increased the depth between two nodes to avoid overlapping
         });
 
         var node = svg.selectAll('g.node').data(nodes, function (d) {
@@ -112,10 +117,19 @@
           .enter()
           .append('g')
           .attr('class', 'node')
+          .attr('id' , function (d) {return d.data.color;})
           .attr('transform', function (d) {
             return 'translate(' + source.y0 + ',' + (source.x0 ) + ')';
           })
+          .attr('fill-opacity' , 0.5)
+          .attr('opacity' , 0.75)
           .on('click', click)
+          .on('mouseover',function(d){
+            d3.selectAll('#'+d.data.color).attr('fill-opacity' , 1)
+          })
+          .on('mouseout',function(d){
+            d3.selectAll('#'+d.data.color).attr('fill-opacity' , 0.5)
+          })
           
 
         nodeEnter
@@ -128,14 +142,7 @@
           })
           .style('stroke-width', function (d) { 
             return d._children ? '2px' : '1px';}) //increase the stroke width of node if it is colapsed
-          .attr('fill-opacity' , 0.5)
-          .attr('opacity' , 0.75)
-          .on('mouseover',function(d){
-            d3.selectAll('#'+d.data.color).attr('fill-opacity' , 1)
-          })
-          .on('mouseout',function(d){
-            d3.selectAll('#'+d.data.color).attr('fill-opacity' , 0.5)
-          })
+          
 
         nodeEnter
           .append('text')
@@ -251,7 +258,6 @@
               word,
               line = [],
               lineNumber = 0,
-              lineHeight = 1.1, // ems
               x = text.attr("x"),
               y = text.attr("y"),
               dy = 0, 
@@ -260,19 +266,17 @@
                           .attr("x", x)
                           .attr("y", y)
                           .attr("dy", dy + "em");
-                          console.log(words)
+                          console.log(text, words)
           while (word = words.pop()) {
               line.push(word);
-              console.log(line , word)
               tspan.text(line.join(" "));
-              
+              console.log(line, (lineNumber+1) * lineHeight + dy, lineNumber)
                   line.pop();
                   tspan.text(line.join(" "));
                   line = [word];
                   tspan = text.append("tspan")
                               .attr("x", 0)
-                              .attr("y", y)
-                              .attr("dy", ++lineNumber * lineHeight + dy + "em")
+                              .attr("y", y + ++lineNumber * lineHeight)
                               .text(word);
               
           }
