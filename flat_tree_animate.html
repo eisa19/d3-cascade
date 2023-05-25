@@ -42,6 +42,9 @@
       .append('g')
       .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+      var textArea = d3.select('svg').append('g')
+      .attr('transform', 'translate(' + (height) + ',' + margin.top + ')');
+
     var i = 0,
       duration = 750,
       root;
@@ -65,7 +68,6 @@
       var root2 = stratify(data).sort(function (a, b) {
         return a.height - b.height || a.id.localeCompare(b.id);
       });
-      console.log(data, root2)
       root.x0 = height / 2;
       root.y0 = 0;
 
@@ -126,6 +128,13 @@
           .attr('opacity' , 0.75)
           .on('click', click)
           .on('mouseover',function(d){
+            var textList = []
+            dataset = nodeEnter.selectAll('text#'+d.data.color).data()
+            dataset.forEach(elemet=>{
+              textList.push((elemet.id.substring(elemet.id.lastIndexOf('.') + 1)).replace(/\!/g,' '))
+              addText(textList , d.data.color)
+            })
+
             d3.selectAll('#'+d.data.color).attr('fill-opacity' , 1).attr('r' , 10)
             d3.selectAll('text#'+d.data.color).style('font-size' , highlightTextSize)
           })
@@ -133,6 +142,7 @@
             d3.selectAll('#'+d.data.color).attr('fill-opacity' , 0.5).attr('r' , 5)
             d3.selectAll('text#'+d.data.color).style('font-size' , '11px')
           })
+
           
 
         nodeEnter
@@ -240,9 +250,22 @@
         }
       // root.children.forEach(click);
 
+      function addText(text , color){
+          textArea.selectAll('text').remove()
+        var count = 0
+        text.forEach((d,i)=>{
+          textArea.append('text').attr("x", 120)
+          .attr("y", function(d,i){ return 100 + count*25}) // 100 is where the first dot appears. 25 is the distance between dots
+          .style("fill", color)
+          .text(d)
+          .attr("text-anchor", "left")
+          .style("alignment-baseline", "middle")
+          count++;
+        })
+      }
+
 
         function click(d) {
-          console.log(d)
           if (d.children) {
             d._children = d.children;
             d.children = null;
@@ -270,11 +293,9 @@
                           .attr("x", x)
                           .attr("y", y)
                           .attr("dy", dy + "em");
-                          console.log(text, words)
           while (word = words.pop()) {
               line.push(word);
               tspan.text(line.join(" "));
-              console.log(line, (lineNumber+1) * lineHeight + dy, lineNumber)
                   line.pop();
                   tspan.text(line.join(" "));
                   line = [word];
