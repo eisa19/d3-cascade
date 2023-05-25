@@ -139,6 +139,7 @@
             d3.selectAll('text#'+d.data.color).style('font-size' , highlightTextSize)
           })
           .on('mouseout',function(d){
+            textArea.selectAll('text').remove()
             d3.selectAll('#'+d.data.color).attr('fill-opacity' , 0.5).attr('r' , 5)
             d3.selectAll('text#'+d.data.color).style('font-size' , '11px')
           })
