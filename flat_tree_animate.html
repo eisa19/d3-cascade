@@ -21,8 +21,31 @@
   {border-style: solid;
     border-width: 1px;
   }
-</style>
+  .btn-group .button {
+  background-color: #47524862; /* Green */
+  border: 1px solid #000000;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 16px;
+  cursor: pointer;
+  width: 150px;
+  display: block;
+}
 
+.btn-group .button:not(:last-child) {
+  border-bottom: none; /* Prevent double borders */
+}
+
+.btn-group .button:hover {
+  background-color: #181a189c;
+}
+</style>
+<div class="btn-group">
+  <button class="button" onclick="showHorizontal()">Show Horizontal</button>
+  <button class="button" onclick="showVertical()">Show Vertical</button>
+</div>
 <body>
   <!-- load the d3.js library -->
   <script src="https://d3js.org/d3.v4.min.js"></script>
@@ -30,15 +53,47 @@
     // Set the dimensions and margins of the diagram
     var margin = { top: 20, right: 90, bottom: 50, left: 90 },
       width = 4500,
-      height = 3500 - margin.bottom;
+      height = 4500 - margin.bottom;
+
 
       var lineHeight = 15 // change this number to change spacing of text
       var nodesVerticalDistance = 3.2; //change this number to change vertical distance between nodes
       var nodeHorizontalSpacing = 300; ////change this number to change horizontal distance between nodes
       var highlightTextSize = '13px' //change this number to change text size on mouseover
+      var dataset;
+      var orientation = 'horizontal'
+
+      function showHorizontal(){
+        nodesVerticalDistance = 3.2; //change this number to change vertical distance between nodes
+        nodeHorizontalSpacing = 300; ////change this number to change horizontal distance between nodes
+        orientation = 'horizontal'
+        drawTree(dataset)
+      }
+
+      function showVertical(){
+        nodesVerticalDistance = 14.2; //change this number to change vertical distance between nodes
+        nodeHorizontalSpacing = 150; ////change this number to change horizontal distance between nodes
+        orientation = 'vertical'
+        drawTree(dataset)
+
+      }
 
 
-    var svg = d3
+    
+    d3.csv('armenui.csv', function (error, datacsv) {
+      dataset = datacsv;
+      drawTree(dataset)
+      
+    });
+
+    function drawTree(dataset){
+
+      var data = dataset
+
+      d3.selectAll('svg').remove()
+
+
+      var svg = d3
       .select('body')
       .append('svg')
       .attr('width', width)
@@ -50,9 +105,16 @@
       .select('body').append('svg').attr('class' , 'textArea')
       .attr('width' , 500).attr('height' , 150)
       .attr('transform', 'translate(' + (0) + ',' + (-height) + ')')
-      .append('g')
-      .attr('transform', 'translate(' + (-margin.left-20) + ',' + (-margin.top-margin.bottom-20) + ')');
-
+      .append('g').attr('transform', 'translate(' + (-margin.left-20) + ',' + (-margin.top-margin.bottom-20) + ')');
+      if( orientation == 'horizontal')
+      {
+        d3.select('.textArea').attr('transform', 'translate(' + (0) + ',' + (-height) + ')')
+      
+      }
+      else{
+        d3.select('.textArea').attr('transform', 'translate(' + (1000) + ',' + (-height) + ')')
+      }
+      
     var i = 0,
       duration = 750,
       root;
@@ -69,13 +131,10 @@
       return d.id.substring(0, d.id.lastIndexOf('.'));
     });
 
-    d3.csv('armenui.csv', function (error, data) {
       var root = stratify(data).sort(function (a, b) {
         return a.height - b.height || a.id.localeCompare(b.id);
       });
-      var root2 = stratify(data).sort(function (a, b) {
-        return a.height - b.height || a.id.localeCompare(b.id);
-      });
+      
       root.x0 = height / 2;
       root.y0 = 0;
 
@@ -130,7 +189,11 @@
           .attr('class', 'node')
           .attr('id' , function (d) {return d.data.color;})
           .attr('transform', function (d) {
+            if(orientation == 'horizontal')
             return 'translate(' + source.y0 + ',' + (source.x0 ) + ')';
+            else
+            return 'translate(' + source.x0 + ',' + (source.y0 ) + ')';
+
           })
           .attr('fill-opacity' , 0.5)
           .attr('opacity' , 0.75)
@@ -186,7 +249,10 @@
           .transition()
           .duration(duration)
           .attr('transform', function (d) {
+            if(orientation == 'horizontal')
             return 'translate(' + d.y + ',' + (d.x) + ')';
+            else
+            return 'translate(' + d.x + ',' + (d.y) + ')';
           });
 
         nodeUpdate
@@ -205,6 +271,7 @@
           .duration(duration)
           .attr('transform', function (d) {
             return 'translate(' + source.y + ',' + source.x + ')';
+
           })
           .remove();
 
@@ -250,10 +317,16 @@
         });
 
         function diagonal(s, d) {
-          path = `M ${s.y} ${s.x}
+          if(orientation == 'horizontal')
+           {path = `M ${s.y} ${s.x}
             C ${(s.y + d.y) / 2} ${s.x},
               ${(s.y + d.y) / 2} ${d.x},
-              ${d.y} ${d.x}`;
+              ${d.y} ${d.x}`;}
+          else
+          {path = `M ${s.x } ${s.y}
+            C ${(s.x + d.x) / 2 } ${s.y},
+              ${(s.x + d.x) / 2 } ${d.y},
+              ${d.x } ${d.y}`;}
 
           return path;
         }
@@ -285,7 +358,7 @@
           update(d);
         }
       }
-    });
+    }
 
     function wrapPunctuation(text) {
       text.each(function () {
