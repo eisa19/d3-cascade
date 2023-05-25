@@ -43,7 +43,7 @@
       .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
       var textArea = d3.select('svg').append('g')
-      .attr('transform', 'translate(' + (height) + ',' + margin.top + ')');
+      .attr('transform', 'translate(' + (-margin.left) + ',' + (-margin.top-margin.bottom) + ')');
 
     var i = 0,
       duration = 750,
