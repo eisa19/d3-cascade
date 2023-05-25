@@ -17,6 +17,10 @@
     stroke-opacity: 0.4;
     stroke-width: 2px;
   }
+  .textArea
+  {border-style: solid;
+    border-width: 1px;
+  }
 </style>
 
 <body>
@@ -42,8 +46,12 @@
       .append('g')
       .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-      var textArea = d3.select('svg').append('g')
-      .attr('transform', 'translate(' + (-margin.left) + ',' + (-margin.top-margin.bottom) + ')');
+      var textArea = d3
+      .select('body').append('svg').attr('class' , 'textArea')
+      .attr('width' , 500).attr('height' , 150)
+      .attr('transform', 'translate(' + (0) + ',' + (-height) + ')')
+      .append('g')
+      .attr('transform', 'translate(' + (-margin.left-20) + ',' + (-margin.top-margin.bottom-20) + ')');
 
     var i = 0,
       duration = 750,
@@ -327,7 +335,7 @@
         line.pop();
         tspan.text(line.join(" "));
         line = [word];
-        tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+        tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
       }
     }
   });
