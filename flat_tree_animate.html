@@ -30,7 +30,8 @@
 
       var lineHeight = 15 // change this number to change spacing of text
       var nodesVerticalDistance = 3.2; //change this number to change vertical distance between nodes
-      var nodeHorizontalSpacing = 500; ////change this number to change horizontal distance between nodes
+      var nodeHorizontalSpacing = 300; ////change this number to change horizontal distance between nodes
+      var highlightTextSize = '13px' //change this number to change text size on mouseover
 
 
     var svg = d3
@@ -125,10 +126,12 @@
           .attr('opacity' , 0.75)
           .on('click', click)
           .on('mouseover',function(d){
-            d3.selectAll('#'+d.data.color).attr('fill-opacity' , 1)
+            d3.selectAll('#'+d.data.color).attr('fill-opacity' , 1).attr('r' , 10)
+            d3.selectAll('text#'+d.data.color).style('font-size' , highlightTextSize)
           })
           .on('mouseout',function(d){
-            d3.selectAll('#'+d.data.color).attr('fill-opacity' , 0.5)
+            d3.selectAll('#'+d.data.color).attr('fill-opacity' , 0.5).attr('r' , 5)
+            d3.selectAll('text#'+d.data.color).style('font-size' , '11px')
           })
           
 
@@ -146,6 +149,7 @@
 
         nodeEnter
           .append('text')
+          .attr('id' , function (d) {return d.data.color;})
           .attr('x', function (d) {
             return d.children || d._children ? -8 : 8;
           })
