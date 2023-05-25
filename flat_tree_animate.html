@@ -56,6 +56,10 @@
       var root = stratify(data).sort(function (a, b) {
         return a.height - b.height || a.id.localeCompare(b.id);
       });
+      var root2 = stratify(data).sort(function (a, b) {
+        return a.height - b.height || a.id.localeCompare(b.id);
+      });
+      console.log(data, root2)
       root.x0 = height / 2;
       root.y0 = 0;
 
@@ -89,13 +93,12 @@
         };
         childCount(0, root);
         var newHeight = d3.max(levelWidth) * 25; // 25 pixels per line
-        console.log('newHeight' , newHeight)
+
         treemap = treemap.size([newHeight*3.2, width]);
         var treeData = treemap(root);
 
         var nodes = treeData.descendants(),
           links = treeData.descendants().slice(1);
-          console.log('nodes' , nodes , links)
 
         nodes.forEach(function (d) {
           d.y = d.depth * 500; //increased the depth between two nodes to avoid overlapping
@@ -112,17 +115,27 @@
           .attr('transform', function (d) {
             return 'translate(' + source.y0 + ',' + (source.x0 ) + ')';
           })
-          .on('click', click);
+          .on('click', click)
+          
 
         nodeEnter
           .append('circle')
           .attr('class', 'node')
+          .attr('id' , function (d) {return d.data.color;})
           .attr('r', 1e-6)
           .style('fill', function (d) {
             return d.data.color; //fill the node with color stated in the csv file
           })
           .style('stroke-width', function (d) { 
-            return d._children ? '2px' : '1px';}); //increase the stroke width of node if it is colapsed
+            return d._children ? '2px' : '1px';}) //increase the stroke width of node if it is colapsed
+          .attr('fill-opacity' , 0.5)
+          .attr('opacity' , 0.75)
+          .on('mouseover',function(d){
+            d3.selectAll('#'+d.data.color).attr('fill-opacity' , 1)
+          })
+          .on('mouseout',function(d){
+            d3.selectAll('#'+d.data.color).attr('fill-opacity' , 0.5)
+          })
 
         nodeEnter
           .append('text')
@@ -135,7 +148,8 @@
           .style('text-anchor', function (d) {
             return d.children ? 'end' : 'start';
           }).attr("dy", 1)
-          .call(wrap, 150);
+          .call(wrapPunctuation) //use this for next line by punctuation
+          // .call(wrap, 150); //use this for next line based on available text width
 
         var nodeUpdate = nodeEnter.merge(node);
         nodeUpdate
@@ -213,8 +227,11 @@
 
           return path;
         }
+      // root.children.forEach(click);
+
 
         function click(d) {
+          console.log(d)
           if (d.children) {
             d._children = d.children;
             d.children = null;
@@ -227,7 +244,42 @@
       }
     });
 
-    function wrap(text, width) {
+    function wrapPunctuation(text) {
+      text.each(function () {
+          var text = d3.select(this),
+              words = text.text().split(/[\\.!?]/).reverse(),
+              word,
+              line = [],
+              lineNumber = 0,
+              lineHeight = 1.1, // ems
+              x = text.attr("x"),
+              y = text.attr("y"),
+              dy = 0, 
+              tspan = text.text(null)
+                          .append("tspan")
+                          .attr("x", x)
+                          .attr("y", y)
+                          .attr("dy", dy + "em");
+                          console.log(words)
+          while (word = words.pop()) {
+              line.push(word);
+              console.log(line , word)
+              tspan.text(line.join(" "));
+              
+                  line.pop();
+                  tspan.text(line.join(" "));
+                  line = [word];
+                  tspan = text.append("tspan")
+                              .attr("x", 0)
+                              .attr("y", y)
+                              .attr("dy", ++lineNumber * lineHeight + dy + "em")
+                              .text(word);
+              
+          }
+      });
+}
+
+  function wrap(text, width) {
   text.each(function() {
     var text = d3.select(this),
         words = text.text().split(/\s+/).reverse(),
